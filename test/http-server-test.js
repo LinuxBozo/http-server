@@ -8,6 +8,26 @@ var assert = require('assert'),
 var root = path.join(__dirname, 'fixtures', 'root');
 
 vows.describe('http-server').addBatch({
+  'When http-server is listening': {
+    topic: function () {
+      var server = httpServer.createServer({
+        root: root,
+        forceHttps: true
+      });
+
+      server.listen(8083);
+      this.callback(null, server);
+    },
+    'it should redirect when forceHttps option is set': {
+      topic: function () {
+        request('http://127.0.0.1:8083/file', this.callback);
+      },
+      'status code should be 302': function (res) {
+        console.log(res);
+        assert.equal(res.statusCode, 302);
+      }
+    }
+  },
   'When http-server is listening on 8080': {
     topic: function () {
       var server = httpServer.createServer({
