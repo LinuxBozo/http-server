@@ -8,7 +8,7 @@ var assert = require('assert'),
 var root = path.join(__dirname, 'fixtures', 'root');
 
 vows.describe('http-server').addBatch({
-  'When http-server is listening': {
+  'When http-server is listening on 8083': {
     topic: function () {
       var server = httpServer.createServer({
         root: root,
@@ -20,11 +20,29 @@ vows.describe('http-server').addBatch({
     },
     'it should redirect when forceHttps option is set': {
       topic: function () {
-        request('http://127.0.0.1:8083/file', this.callback);
+        var options = {
+          url: 'http://127.0.0.1:8083/file',
+          followRedirect: false
+        };
+        request(options, this.callback);
       },
       'status code should be 302': function (res) {
         console.log(res);
         assert.equal(res.statusCode, 302);
+      }
+    },
+    'when x-forwarded-proto is https': {
+      topic: function () {
+        var options = {
+          url: 'http://127.0.0.1:8083/file',
+          headers: {
+            'X-Forwarded-Proto': 'https'
+          }
+        };
+        request(options, this.callback);
+      },
+      'should set Strict-Transport-Security header': function (res) {
+        assert.equal(res.headers['strict-transport-security'], 'max-age=31536000');
       }
     }
   },
